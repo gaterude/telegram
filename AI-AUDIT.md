@@ -31,3 +31,17 @@ Webhook Registration
 
  AI Usage
  AI assistance was used only for repeated implementation patterns and debugging after the initial manual handshake.
+
+## Week 20 - Day 2
+## Week 20 - Day 2
+
+Callback Query Handling
+
+Worked on understanding the difference between a `message` update and a `callback_query` update in Telegram. A `message` update is triggered when a user sends a normal message  while a `callback_query` update is triggered when a user presses an inline keyboard button. Callback queries must be answered using `answerCallbackQuery` so Telegram knows that the button interaction has been received and processed. If the callback query is not answered, Telegram may continue showing a loading indicator on the user's button and the interaction may appear stuck.
+
+Debug Notes
+
+Tested the callback handling flow and checked the server logs when processing button interactions. Verified that callback data can be read from `query.data` and used to determine the next action in the bot conversation.
+
+AI Usage
+ used for understanding repeated Telegram callback-handling patterns and debugging after the initial implementation.
