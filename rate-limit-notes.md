@@ -1,0 +1,2 @@
+Rate Limit Notes
+Telegram's rough broadcast rate limit is about 30 messages per second. If the bot exceeds the limit, Telegram can respond with a 429 Too Many Requests error and temporarily throttle the bot. WhatsApp has different rate limits and policies  so its limits are not the same as Telegram's 30 messages per second guideline. To scale broadcasts beyond the per-second limit messages can be handled using batching and queues to control the sending rate. Multiple bots can also be used to distribute the workload while respecting the platforms limits.
