@@ -1,0 +1,3 @@
+# Git Bisect Notes
+
+Git bisect uses binary search to narrow down a range of commits until it finds the first commit that introduced a bug. It repeatedly checks a commit in the middle of the remaining history and uses good or bad results to eliminate half of the possible commits. For a 128-commit history, it takes about 7 bisect steps because 2^7 is 128. Automated `git bisect run` is better when the test can reliably return a successful or failed exit code without manual decisions. If a commit is marked incorrectly during manual bisect, Git's search can be led in the wrong direction and may identify the wrong commit. A mistaken result can be corrected by reviewing the bisect history and replaying the bisect with the correct good or bad classifications.
