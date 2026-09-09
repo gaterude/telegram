@@ -4,7 +4,7 @@ const cron = require("node-cron");
 
 function scheduleDailyReminder(bot, db) {
   cron.schedule(
-    "0 8 * * *",
+    "0 8 * *  *",
     async () => {
       console.log("Running daily chama reminder");
 
@@ -41,7 +41,7 @@ function scheduleDailyReminder(bot, db) {
   );
 
   console.log(
-    "Daily reminder cron scheduled (08:00 Africa/Nairobi)"
+    "Daily reminder cron scheduled (TEST: every 3 minutes)"
   );
 }
 
@@ -120,7 +120,7 @@ function scheduleOverdueReminder(bot, db) {
   );
 
   console.log(
-    "Overdue reminder cron scheduled (TEST: every minute)"
+    "Overdue reminder cron scheduled (18:00 Africa/Nairobi)"
   );
 }
 

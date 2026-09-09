@@ -4,7 +4,7 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function broadcast(text, { rateMs = 50 } = {}) {
+async function broadcast(text, { rateMs = 35 } = {}) {
   if (!db) {
     throw new Error("Database is not connected");
   }
@@ -19,25 +19,25 @@ async function broadcast(text, { rateMs = 50 } = {}) {
 
   const broadcastId = broadcastResult.rows[0].id;
 
-  // Get every group and supergroup
+  // Get all non-blocked subscribers
   const { rows } = await db.query(
-    `SELECT id
-     FROM telegram_chats
-     WHERE type IN ('group', 'supergroup')
-     ORDER BY id`
+    `SELECT chat_id
+     FROM telegram_subscribers
+     WHERE blocked = FALSE
+     ORDER BY chat_id`
   );
 
   let sent = 0;
   let failed = 0;
 
-  for (const chat of rows) {
+  for (const subscriber of rows) {
     // Check whether this broadcast was already sent
     const deliveryResult = await db.query(
       `SELECT status
        FROM broadcast_deliveries
        WHERE broadcast_id = $1
        AND chat_id = $2`,
-      [broadcastId, chat.id]
+      [broadcastId, subscriber.chat_id]
     );
 
     if (
@@ -54,12 +54,12 @@ async function broadcast(text, { rateMs = 50 } = {}) {
        VALUES ($1, $2, $3)
        ON CONFLICT (broadcast_id, chat_id)
        DO NOTHING`,
-      [broadcastId, chat.id, "pending"]
+      [broadcastId, subscriber.chat_id, "pending"]
     );
 
     try {
       await bot.sendMessage(
-        chat.id,
+        subscriber.chat_id,
         text,
         {
           parse_mode: "HTML",
@@ -72,7 +72,7 @@ async function broadcast(text, { rateMs = 50 } = {}) {
              status = 'sent'
          WHERE broadcast_id = $1
          AND chat_id = $2`,
-        [broadcastId, chat.id]
+        [broadcastId, subscriber.chat_id]
       );
 
       sent++;
@@ -80,16 +80,18 @@ async function broadcast(text, { rateMs = 50 } = {}) {
       const errorCode =
         err.response?.body?.error_code;
 
-      // Bot was removed from group
+      // Subscriber blocked the bot or bot can no longer message them
       if (errorCode === 403) {
         console.error(
-          `Bot is no longer in chat ${chat.id}. Removing stale chat.`
+          `Subscriber ${subscriber.chat_id} is blocked.`
         );
 
         await db.query(
-          `DELETE FROM telegram_chats
-           WHERE id = $1`,
-          [chat.id]
+          `UPDATE telegram_subscribers
+           SET blocked = TRUE,
+               updated_at = NOW()
+           WHERE chat_id = $1`,
+          [subscriber.chat_id]
         );
 
         await db.query(
@@ -97,7 +99,7 @@ async function broadcast(text, { rateMs = 50 } = {}) {
            SET status = 'failed'
            WHERE broadcast_id = $1
            AND chat_id = $2`,
-          [broadcastId, chat.id]
+          [broadcastId, subscriber.chat_id]
         );
 
         failed++;
@@ -117,7 +119,7 @@ async function broadcast(text, { rateMs = 50 } = {}) {
 
         try {
           await bot.sendMessage(
-            chat.id,
+            subscriber.chat_id,
             text,
             {
               parse_mode: "HTML",
@@ -130,13 +132,13 @@ async function broadcast(text, { rateMs = 50 } = {}) {
                  status = 'sent'
              WHERE broadcast_id = $1
              AND chat_id = $2`,
-            [broadcastId, chat.id]
+            [broadcastId, subscriber.chat_id]
           );
 
           sent++;
         } catch (retryErr) {
           console.error(
-            `Retry failed for ${chat.id}:`,
+            `Retry failed for ${subscriber.chat_id}:`,
             retryErr.message
           );
 
@@ -145,7 +147,7 @@ async function broadcast(text, { rateMs = 50 } = {}) {
              SET status = 'failed'
              WHERE broadcast_id = $1
              AND chat_id = $2`,
-            [broadcastId, chat.id]
+            [broadcastId, subscriber.chat_id]
           );
 
           failed++;
@@ -155,7 +157,7 @@ async function broadcast(text, { rateMs = 50 } = {}) {
       // Other errors
       else {
         console.error(
-          `Broadcast failed for ${chat.id}:`,
+          `Broadcast failed for ${subscriber.chat_id}:`,
           err.message
         );
 
@@ -164,7 +166,7 @@ async function broadcast(text, { rateMs = 50 } = {}) {
            SET status = 'failed'
            WHERE broadcast_id = $1
            AND chat_id = $2`,
-          [broadcastId, chat.id]
+          [broadcastId, subscriber.chat_id]
         );
 
         failed++;

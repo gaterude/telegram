@@ -24,6 +24,7 @@ const bot = new TelegramBot(
     polling: false,
   }
 );
+
 // Database connection
 
 let db = null;
@@ -52,6 +53,7 @@ if (process.env.DATABASE_URL) {
     "DATABASE_URL is not available."
   );
 }
+
 // Save chat to database
 
 async function saveChat(chat) {
@@ -74,6 +76,41 @@ async function saveChat(chat) {
   } catch (err) {
     console.error(
       "Error saving chat:",
+      err.message
+    );
+  }
+}
+
+// WEEK 20 ADDITION
+// Save Telegram subscriber
+
+async function saveSubscriber(user) {
+  if (!db) return;
+
+  try {
+    await db.query(
+      `INSERT INTO telegram_subscribers
+       (chat_id, first_name, username, blocked)
+       VALUES ($1, $2, $3, FALSE)
+       ON CONFLICT (chat_id)
+       DO UPDATE SET
+         first_name = EXCLUDED.first_name,
+         username = EXCLUDED.username,
+         blocked = FALSE,
+         updated_at = NOW()`,
+      [
+        user.id,
+        user.first_name || null,
+        user.username || null,
+      ]
+    );
+
+    console.log(
+      `Subscriber saved: ${user.id}`
+    );
+  } catch (err) {
+    console.error(
+      "Error saving subscriber:",
       err.message
     );
   }
@@ -118,11 +155,61 @@ bot.onText(
 
     await saveChat(msg.chat);
 
+    // WEEK 20 ADDITION
+    // Save user as an active subscriber
+    await saveSubscriber(msg.from);
+
     await bot.sendMessage(
       msg.chat.id,
       "Welcome to Chama Bot! What would you like to do?",
       mainMenu
     );
+  }
+);
+
+// /stop
+
+bot.onText(
+  /^\/stop$/,
+  async (msg) => {
+    console.log(
+      "User stopped bot:",
+      msg.from.id
+    );
+
+    if (!db) {
+      await bot.sendMessage(
+        msg.chat.id,
+        "Database is not connected."
+      );
+
+      return;
+    }
+
+    try {
+      await db.query(
+        `UPDATE telegram_subscribers
+         SET blocked = TRUE,
+             updated_at = NOW()
+         WHERE chat_id = $1`,
+        [msg.from.id]
+      );
+
+      await bot.sendMessage(
+        msg.chat.id,
+        "You have been unsubscribed from broadcasts."
+      );
+    } catch (err) {
+      console.error(
+        "Error stopping subscriber:",
+        err.message
+      );
+
+      await bot.sendMessage(
+        msg.chat.id,
+        "Could not stop broadcasts."
+      );
+    }
   }
 );
 
@@ -142,6 +229,7 @@ bot.onText(
       msg.chat.id,
       "Available commands:\n" +
         "/start - start the bot\n" +
+        "/stop - stop broadcasts\n" +
         "/help - show this message\n" +
         "/echo <text> - echo back\n"
     );
@@ -221,6 +309,7 @@ bot.onText(
   async (msg, match) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
+
     await saveChat(msg.chat);
 
     // Broadcast should only be used in a group

@@ -44,6 +44,7 @@ const server = app.listen(
     );
   }
 );
+require("./cron/registry").startAll();
 
 // Configure Telegram webhook
 (async () => {

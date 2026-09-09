@@ -78,3 +78,29 @@ CREATE TABLE group_members (
   role TEXT DEFAULT 'member',
   PRIMARY KEY (chat_id, user_id)
 );
+CREATE TABLE cron_runs (
+  id BIGSERIAL PRIMARY KEY,
+  job_name TEXT NOT NULL,
+  started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  finished_at TIMESTAMPTZ,
+  status TEXT CHECK (status IN ('running', 'success', 'failed')),
+  error_message TEXT,
+  duration_ms INTEGER
+);
+
+CREATE INDEX idx_cron_runs_job_started
+ON cron_runs(job_name, started_at DESC);
+CREATE TABLE IF NOT EXISTS contributions (
+  id SERIAL PRIMARY KEY,
+  chat_id BIGINT NOT NULL REFERENCES telegram_chats(id),
+  user_id BIGINT NOT NULL,
+  amount INTEGER NOT NULL,
+  contributed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  status TEXT DEFAULT 'completed'
+);
+
+CREATE INDEX IF NOT EXISTS idx_contributions_chat_user
+  ON contributions(chat_id, user_id);
+
+CREATE INDEX IF NOT EXISTS idx_contributions_contributed_at
+  ON contributions(contributed_at DESC);
