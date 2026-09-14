@@ -1,25 +1,37 @@
 const cron = require("node-cron");
 const { db } = require("../services/telegram.service");
+const { retry } = require("../lib/retry");
+const { logJob } = require("../lib/job-logger");
 
 cron.schedule("0 8 * * *", async () => {
-  console.log("[daily-report] running at", new Date().toISOString());
-
-  if (!db) {
-    console.log("[daily-report] Database is not connected");
-    return;
-  }
+  logJob("daily-report", "start");
 
   try {
-    const { rows } = await db.query(
-      "SELECT COUNT(*) as n FROM telegram_chats WHERE last_active_at > NOW() - INTERVAL '1 day'"
+    if (!db) {
+      throw new Error("Database is not connected");
+    }
+
+    const { rows } = await retry(
+      () =>
+        db.query(
+          "SELECT COUNT(*) as n FROM telegram_chats WHERE last_active_at > NOW() - INTERVAL '1 day'"
+        ),
+      {
+        attempts: 3,
+        baseMs: 500,
+      }
     );
 
-    console.log(`[daily-report] Active chats in last 24h: ${rows[0].n}`);
+    logJob("daily-report", "success", {
+      active_chats: rows[0].n,
+    });
   } catch (err) {
-    console.error("[daily-report] Error:", err.message);
+    logJob("daily-report", "error", {
+      error: err.message,
+    });
   }
 }, {
-  timezone: "Africa/Nairobi"
+  timezone: "Africa/Nairobi",
 });
 
 console.log("Daily report scheduled for 08:00 EAT");
