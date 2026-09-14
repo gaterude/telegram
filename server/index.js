@@ -12,7 +12,10 @@ const PORT = process.env.PORT || 3000;
 
 const telegram = require("./services/telegram.service");
 const env = require("./config/env");
-
+require("./jobs/daily-report");
+require("./jobs/hourly-cleanup");
+require("./jobs/weekly-report");
+require("./jobs/every-5-minutes");
 const {
   scheduleDailyReminder,
   scheduleOverdueReminder,
