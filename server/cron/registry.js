@@ -11,7 +11,7 @@ const jobs = [
   },
   {
     name: "daily-report",
-    schedule: "*/3 * * * *",
+    schedule: "0 8 * * *",
     timezone: "Africa/Nairobi",
     run: tasks.sendDailyReport,
   },
