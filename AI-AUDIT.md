@@ -92,3 +92,18 @@ Granting the bot the required moderation permissions.
  Testing `/mute`.
  Verifying that non-admin users cannot perform moderation commands.
 
+
+# AI Audit — Week 21 Day 1
+# AI Audit
+
+## What AI helped with
+
+I used AI to understand how node-cron schedules work, especially cron expressions and timezone settings. AI also helped me adapt the example daily report to my existing Telegram bot project, since my project uses PostgreSQL through the Telegram service instead of the `db/pool` structure in the example.
+
+## What I did
+
+I created and tested the scheduled job files, ran the server, checked the console output, and confirmed that the scheduled jobs were registered. I also tested the short interval schedule and restored the daily schedule after testing.
+
+## What I learned
+
+I learned that node-cron does not automatically run a missed job when the server starts. I also learned why specifying `Africa/Nairobi` is important when the application needs to follow Kenya time.
