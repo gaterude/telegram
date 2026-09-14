@@ -107,3 +107,17 @@ I created and tested the scheduled job files, ran the server, checked the consol
 ## What I learned
 
 I learned that node-cron does not automatically run a missed job when the server starts. I also learned why specifying `Africa/Nairobi` is important when the application needs to follow Kenya time.
+
+## Week 21 Day 2
+
+### What AI helped with
+
+I used AI to help with the retry helper, error handling, and structured logging. AI also helped me understand how to use retry attempts with backoff and how to log job events as JSON.
+
+### What I did
+
+I added try/catch handling to the scheduled jobs, added an overlap guard to prevent the same job from running at the same time, tested the retry behavior, and added structured logging. I also wrote the idempotency notes myself.
+
+### What I learned
+
+I learned that scheduled jobs need to handle failures without crashing the application. I also learned why retries should be limited and why scheduled work should be designed so running it more than once does not cause unwanted side effects.
