@@ -16,6 +16,7 @@ require("./jobs/daily-report");
 require("./jobs/hourly-cleanup");
 require("./jobs/weekly-report");
 require("./jobs/every-5-minutes");
+require("./jobs/process-pending");
 const {
   scheduleDailyReminder,
   scheduleOverdueReminder,

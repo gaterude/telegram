@@ -1,0 +1,3 @@
+# Lock Choice
+
+Postgres advisory locks are useful because the database handles the lock for us and releases it when the database session ends. I would prefer Redis SETNX with a TTL  when the lock is required toexpire automatically. The risk of a lock owner crashing is that the job could remain blocked if the lock is not released With Postgres advisory locks, the lock is tied to the database session, so it is released when that session ends. A Redis TTL helps because the lock will expire even if the process that created it crashes. The TTL should be longer than the expected job runtime so that another instance does not start while the first job is still running.
