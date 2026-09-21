@@ -121,3 +121,17 @@ I added try/catch handling to the scheduled jobs, added an overlap guard to prev
 ### What I learned
 
 I learned that scheduled jobs need to handle failures without crashing the application. I also learned why retries should be limited and why scheduled work should be designed so running it more than once does not cause unwanted side effects.
+
+## Day 3
+
+### What AI helped with
+
+I used AI to help scaffold the PostgreSQL advisory lock helper add the lock to the daily report job and create the chunked processing job.
+
+### What I did
+
+I tested the distributed lock with two server instances and tested what happens when the process is killed while the job is running. I also tested the chunked job and wrote the lock choice and kill test notes.
+
+### What I learned
+
+I learned that PostgreSQL advisory locks are tied to a database session and can prevent multiple server instances from running the same job at the same time. I also learned that processing records in chunks makes a long-running job easier to manage and resume.
