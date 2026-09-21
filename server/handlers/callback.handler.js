@@ -313,6 +313,26 @@ async function handleCallbackQuery(
 
     return; 
   } 
+  // In the callback query handler:
+if (data.startsWith("cntb:")) {
+  const [, cycleId, amountPart] = data.split(":");
+  if (amountPart === "cancel") {
+    await bot.editMessageText("Cancelled.", { chat_id: query.message.chat.id, message_id: query.message.message_id });
+    return bot.answerCallbackQuery(query.id);
+  }
+  if (amountPart === "custom") {
+    await setSession(query.message.chat.id, query.from.id, {
+      state: "awaiting_custom_amount",
+      context: { cycleId: parseInt(cycleId, 10) },
+    });
+    await bot.sendMessage(query.message.chat.id, "Type the amount in KSh:");
+    return bot.answerCallbackQuery(query.id);
+  }
+
+  const amountCents = parseInt(amountPart, 10);
+  await bot.answerCallbackQuery(query.id);
+  await initiateContribution(bot, query, parseInt(cycleId, 10), amountCents);
+}
 
 
   // ========================================== 
