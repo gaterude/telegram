@@ -135,3 +135,25 @@ I tested the distributed lock with two server instances and tested what happens 
 ### What I learned
 
 I learned that PostgreSQL advisory locks are tied to a database session and can prevent multiple server instances from running the same job at the same time. I also learned that processing records in chunks makes a long-running job easier to manage and resume.
+
+## Week 21 Day 4
+
+### What AI helped with
+
+I used AI to help compare node-cron, pg_cron, and BullMQ based on where they run, restart behavior, retries, observability, and the types of jobs they are suited for.
+
+AI also helped me understand the PostgreSQL commands and Docker setup needed to investigate pg_cron availability.
+
+### What I did
+
+I reviewed the existing node-cron scheduler implementation and the reliability work from the previous days.
+
+I attempted to set up a separate PostgreSQL Docker instance with pg_cron. The available Docker image failed to start because the pg_cron library was not available in the image.
+
+I did not modify the working Telegram bot PostgreSQL database because pg_cron was being tested separately.
+
+I documented the scheduler comparison and the limitation encountered with the local pg_cron setup.
+
+### Human verification
+
+I manually reviewed the existing scheduled jobs, tested the scheduler setup, checked the Docker pg_cron attempt, and verified the resulting PostgreSQL error.
