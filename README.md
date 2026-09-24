@@ -59,3 +59,4 @@ The bot is connected to a real Telegram chama group for testing.
 Screenshots
 
 Screenshots showing the bot features and testing are available in the SCREENSHOT folder.
+- Basic Telegram bot documentation
